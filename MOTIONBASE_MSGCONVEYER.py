@@ -7,6 +7,12 @@ import time
 import threading
 import socket
 
+def get_data(url):
+    global data
+    n = urllib.request.urlopen(url).read()  # get the raw html data in bytes (sends request and warn our esp8266)
+    n = n.decode("utf-8")  # convert raw html bytes format to string :3
+    data = n
+
 class PatientTab(ttk.Frame):
     def __init__(self, master, patient_number, patient_name, patient_age, room_number):
         super().__init__(master)
@@ -21,7 +27,7 @@ class PatientTab(ttk.Frame):
 class MedicalApp(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("Medical Patient App")
+        self.title("Motion Based Message Conveyer")
         self.geometry("1000x460")
 
         self.create_widgets()
@@ -36,6 +42,8 @@ class MedicalApp(tk.Tk):
 
         # Variable to track ESP8266 connection status
         self.esp_connected = False
+
+        threading.Thread(target=self.fetch_data_from_url, daemon=True).start()
 
     def create_widgets(self):
         # Sidebar
@@ -206,13 +214,15 @@ class MedicalApp(tk.Tk):
         self.clock_label.after(1000, self.update_clock)
 
     def fetch_data_from_url(self):
-        url = "http://192.168.100.62"
+        url = "http://192.168.1.62"
         while True:
             try:
                 with urllib.request.urlopen(url) as response:
                     data = response.read().decode("utf-8").strip()
                     if data:
-                        self.another_info_textbox.insert(tk.END, data + "\n")
+                        a = data.split("/")
+                        self.another_info_textbox.delete(1.0, tk.END)
+                        self.another_info_textbox.insert(tk.END, "Motion= " + a[0] + "\n" + "Message= " + a[1] + "\n")
             except urllib.error.URLError as e:
                 print("Error:", e.reason)
             time.sleep(5)
@@ -226,6 +236,7 @@ class MedicalApp(tk.Tk):
                     self.another_info_textbox.insert(tk.END, data.decode() + "\n")
                 except OSError as e:
                     print("Error receiving data:", e)
+                    self.esp_connected = False
             time.sleep(1)
 
     def toggle_device_connection(self):
