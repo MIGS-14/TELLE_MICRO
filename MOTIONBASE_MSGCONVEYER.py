@@ -9,8 +9,8 @@ import socket
 
 def get_data(url):
     global data
-    n = urllib.request.urlopen(url).read()  # get the raw html data in bytes (sends request and warn our esp8266)
-    n = n.decode("utf-8")  # convert raw html bytes format to string :3
+    n = urllib.request.urlopen(url).read()  
+    n = n.decode("utf-8") 
     data = n
 
 class PatientTab(ttk.Frame):
@@ -214,7 +214,7 @@ class MedicalApp(tk.Tk):
         self.clock_label.after(1000, self.update_clock)
 
     def fetch_data_from_url(self):
-        url = "http://192.168.1.62"
+        url = "http://192.168.117.21"
         while True:
             try:
                 with urllib.request.urlopen(url) as response:
